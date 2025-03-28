@@ -11,7 +11,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Ловец шаров")
 
 # Цвета
-WHITE1 = (255, 255, 255)
+WHITE12345 = (255, 255, 255)
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
