@@ -1,92 +1,50 @@
 import pygame
-import random
 import sys
 
 # Инициализация Pygame
 pygame.init()
 
-# Настройки экрана 
-WIDTH, HEIGHT = 600, 500
+# Размер окна
+WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Ловец шаров")
+pygame.display.set_caption("Мой первый Pygame")
 
 # Цвета
-WHITE12345 = (255, 255, 255)
 WHITE = (255, 255, 255)
-BLUE = (0, 0, 255)
 RED = (255, 0, 0)
-BLACK = (0, 0, 0)
 
-# Игрок (платформа)
-player_width = 100
-player_height = 20
-player_x = WIDTH // 2 - player_width // 2
-player_y = HEIGHT - 30
-player_speed = 5
+# Параметры шарика
+x, y = WIDTH // 2, HEIGHT // 2
+radius = 30
+speed_x, speed_y = 5, 3
 
-# Шары пп
-balls = []
-ball_radius = 15
-ball_speed = 3
-
-# Очки
-score = 0
-font = pygame.font.SysFont(None, 36)
-
-# Частота появления шаров
-ball_spawn_rate = 30
-
-# Основной игровой цикл
+# Основной цикл
 clock = pygame.time.Clock()
-running = True
 
+running = True
 while running:
-    screen.fill(BLACK)
-    
-    # Обработка событий
+    clock.tick(60)  # Ограничение до 60 кадров в секунду
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    
-    # Управление игроком
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and player_x > 0:
-        player_x -= player_speed
-    if keys[pygame.K_RIGHT] and player_x < WIDTH - player_width:
-        player_x += player_speed
-    
-    # Создание новых шаров
-    if random.randint(1, ball_spawn_rate) == 1:
-        ball_x = random.randint(ball_radius, WIDTH - ball_radius)
-        balls.append([ball_x, 0])
-    
-    # Движение шаров и проверка столкновений
-    for ball in balls[:]:
-        ball[1] += ball_speed
-        
-        # Проверка, пойман ли шар
-        if (player_x < ball[0] < player_x + player_width and
-            player_y < ball[1] + ball_radius < player_y + player_height):
-            balls.remove(ball)
-            score += 1
-        
-        # Если шар упал за пределы экрана
-        elif ball[1] > HEIGHT:
-            balls.remove(ball)
-    
-    # Отрисовка игрока
-    pygame.draw.rect(screen, BLUE, (player_x, player_y, player_width, player_height))
-    
-    # Отрисовка шаров
-    for ball in balls:
-        pygame.draw.circle(screen, RED, (ball[0], int(ball[1])), ball_radius)
-    
-    # Отрисовка счёта
-    score_text = font.render(f"Очки: {score}", True, WHITE)
-    screen.blit(score_text, (10, 10))
-    
-    pygame.display.flip()
-    clock.tick(60)
 
+    # Логика движения шарика
+    x += speed_x
+    y += speed_y
+
+    # Отскоки от стенок
+    if x - radius <= 0 or x + radius >= WIDTH:
+        speed_x = -speed_x
+    if y - radius <= 0 or y + radius >= HEIGHT:
+        speed_y = -speed_y
+
+    # Рисование
+    screen.fill(WHITE)  # Заливка фона белым
+    pygame.draw.circle(screen, RED, (x, y), radius)  # Рисуем шарик
+
+    pygame.display.flip()  # Обновляем экран
+
+# Завершение работы
 pygame.quit()
 sys.exit()
