@@ -8,10 +8,10 @@ clock = pg.time.Clock()
 font = pg.font.Font(None, 60)
 
 def draw_text(text, center, font, color=(255,255,255)):
-    surf = font.render(text, True, color)
-    rect = surf.get_rect(center=center)
-    screen.blit(surf, rect)
-    return rect
+	surf = font.render(text, True, color)
+	rect = surf.get_rect(center=center)
+	screen.blit(surf, rect)
+	return rect
 
 TILE_SIZE = 200
 
@@ -40,7 +40,6 @@ tiles = [
 	pg.transform.scale(pg.image.load("Sprites/map/tileGrass_transitionW2.png").convert(), (TILE_SIZE, TILE_SIZE)),#21
 	pg.transform.scale(pg.image.load("Sprites/map/tileGrass_roadSplitS.png").convert(), (TILE_SIZE, TILE_SIZE)),#22
 	pg.transform.scale(pg.image.load("Sprites/map/tileSand_roadSplitS.png").convert(), (TILE_SIZE, TILE_SIZE)),#23
-
 
 ]
 
@@ -164,8 +163,8 @@ while running:
 
 	if state == "menu":
 		draw_text("TANKS", (WIDTH//2, HEIGHT//3), font, (255,255,0))
-		start_rect = draw_text("Начать игру",   (WIDTH//2, HEIGHT//2    ), font)
-		settings_rect = draw_text("Настройки (Esc)", (WIDTH//2, HEIGHT//2+100), font)
+		start_rect = draw_text("Начать игру",   (WIDTH//2, HEIGHT//2), font)
+		settings_rect = draw_text("Настройки (Esc)", (WIDTH//2, HEIGHT//2 + 100), font)
 
 	elif state == "settings":
 		draw_text("Настройки: нажмите ESC, чтобы вернуться", (WIDTH//2, HEIGHT//2), font)
