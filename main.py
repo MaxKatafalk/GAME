@@ -63,7 +63,7 @@ for row_idx, row in enumerate(map):
         background.blit(tiles[tile_id], (x, y))
 
 class Tank:
-	def __init__(self, x, y, width, height, color, sprite_path=None):
+	def __init__(self, x, y, width, height, color, sprite_path):
 		self.x = x
 		self.y = y
 		self.width = width 
@@ -74,11 +74,9 @@ class Tank:
 		self.rotationDirection = 1
 		self.wasMoving = False 
 
-		if sprite_path:
-			img = pg.image.load(sprite_path).convert_alpha()
-			self.original_image = pg.transform.scale(img, (width, height))
-		else:
-			self.original_image = None
+		img = pg.image.load(sprite_path).convert_alpha()
+		self.original_image = pg.transform.scale(img, (width, height))
+	
 
 	def update(self, moving):
 		if moving and not self.wasMoving:
@@ -93,20 +91,13 @@ class Tank:
 
 		new_bullet = None
 		if moving and not self.wasMoving:
-			new_bullet = Bullet(self.x, self.y, self.angle, self)
+			new_bullet = Bullet(self.x, self.y, self.angle, self, sprite_path="Sprites/bullets/shotThin.png")
 
 		self.wasMoving = moving
 		return new_bullet
 
 	def draw(self, surface):
-		if self.original_image:
 			rotated = pg.transform.rotate(self.original_image, -self.angle)
-			rect = rotated.get_rect(center=(self.x, self.y))
-			surface.blit(rotated, rect)
-		else:
-			rect_surf = pg.Surface((self.width, self.height), pg.SRCALPHA)
-			pg.draw.rect(rect_surf, self.color, (0, 0, self.width, self.height))
-			rotated = pg.transform.rotate(rect_surf, -self.angle)
 			rect = rotated.get_rect(center=(self.x, self.y))
 			surface.blit(rotated, rect)
 
@@ -114,13 +105,15 @@ class Tank:
 		return pg.Rect(self.x - self.width // 2, self.y - self.height // 2, self.width, self.height)
 
 class Bullet:
-	def __init__(self, x, y, angle, owner):
+	def __init__(self, x, y, angle, owner, sprite_path):
 		self.x = x
 		self.y = y
 		self.angle = angle
 		self.speed = 5
-		self.radius = 5
 		self.owner = owner
+
+		img = pg.image.load(sprite_path).convert_alpha()
+		self.original_image = pg.transform.scale(img, (30, 10))
 
 	def update(self):
 		rad = math.radians(self.angle)
@@ -129,14 +122,17 @@ class Bullet:
 		return 0 <= self.x <= WIDTH and 0 <= self.y <= HEIGHT
 
 	def draw(self, surface):
-		pg.draw.circle(surface, (255, 255, 0), (int(self.x), int(self.y)), self.radius)
+		rotated = pg.transform.rotate(self.original_image, -self.angle)
+		rect = rotated.get_rect(center=(self.x, self.y))
+		surface.blit(rotated, rect)
 
 	def get_rect(self):
-		return pg.Rect(self.x - self.radius, self.y - self.radius, self.radius * 2, self.radius * 2)
+		rotated = pg.transform.rotate(self.original_image, -self.angle)
+		return rotated.get_rect(center=(self.x, self.y))
 
 tanks = [
-	Tank(300, 300, 60, 55, (0, 255, 0), sprite_path="Sprites/tanks/tank_blue.png"),
-	Tank(1200, 700, 60, 55, (0, 0, 255), sprite_path="Sprites/tanks/tank_green.png")
+	Tank(1200, 700, 60, 55, (0, 255, 0), sprite_path="Sprites/tanks/tank_blue.png"),
+	Tank(300, 300, 60, 55, (0, 0, 255), sprite_path="Sprites/tanks/tank_green.png")
 ]
 buttons = [pg.K_UP, pg.K_w]
 bullets = []
