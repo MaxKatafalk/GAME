@@ -62,6 +62,36 @@ for row_idx, row in enumerate(map):
         y = row_idx * TILE_SIZE
         background.blit(tiles[tile_id], (x, y))
 
+explosion_frames = [
+		pg.transform.scale(pg.image.load(f"Sprites/animations/explosion{i}.png").convert_alpha(), (500, 500))
+		for i in range(1, 6)
+]
+
+class Explosion:
+	def __init__(self, x, y):
+		self.frames = explosion_frames   
+		self.index = 0                  
+		self.image = self.frames[0]    
+		self.rect = self.image.get_rect(center=(x, y))
+		self.timer = 0
+		self.frame_rate = 5                  
+		self.finished = False
+
+	def update(self):
+		self.timer += 1
+		if self.timer >= self.frame_rate:
+			self.timer = 0
+			self.index += 1
+			if self.index < len(self.frames):
+				self.image = self.frames[self.index]
+			else:
+				self.finished = True
+
+	def draw(self, surface):
+		if not self.finished:
+			surface.blit(self.image, self.rect)
+
+
 def push_chain(box, dx, dy, boxes, pushed):
 	if box in pushed:
 		return True
@@ -100,6 +130,7 @@ class Tank:
 		self.pushing = False
 		self.rotationDirection = 1
 		self.wasMoving = False
+		self.alive = True
 		img = pg.image.load(sprite_path).convert_alpha()
 		self.original_image = pg.transform.scale(img, (width, height))
 
@@ -152,9 +183,10 @@ class Tank:
 		return new_bullet
 
 	def draw(self, surface):
-			rotated = pg.transform.rotate(self.original_image, -self.angle)
-			rect = rotated.get_rect(center=(self.x, self.y))
-			surface.blit(rotated, rect)
+			if self.alive:
+				rotated = pg.transform.rotate(self.original_image, -self.angle)
+				rect = rotated.get_rect(center=(self.x, self.y))
+				surface.blit(rotated, rect)
 
 	def get_rect(self):
 		return pg.Rect(self.x - self.width // 2, self.y - self.height // 2, self.width, self.height)
@@ -170,10 +202,14 @@ class Bullet:
 		img = pg.image.load(sprite_path).convert_alpha()
 		self.original_image = pg.transform.scale(img, (30, 10))
 
-	def update(self):
+	def update(self, boxes):
 		rad = math.radians(self.angle)
 		self.x += math.cos(rad) * self.speed
 		self.y += math.sin(rad) * self.speed
+		self.rect = self.get_rect()
+		for box in boxes:
+			if self.rect.colliderect(box.rect):
+				return False
 		return 0 <= self.x <= WIDTH and 0 <= self.y <= HEIGHT
 
 	def draw(self, surface):
@@ -219,6 +255,7 @@ tanks = [
 ]
 buttons = [pg.K_UP, pg.K_w]
 bullets = []
+explosions = []
 winner = None
 state = "menu"
 
@@ -263,18 +300,27 @@ while running:
 					bullets.append(new_b)
 
 		for b in bullets[:]:
-			if not b.update():
+			if not b.update(boxes):
 					bullets.remove(b)
 					continue
 			b.draw(screen)
 			for t in tanks:
-					if t is not b.owner and b.get_rect().colliderect(t.get_rect()):
+					if t.alive and t is not b.owner and b.get_rect().colliderect(t.get_rect()):
+						t.alive = False
 						winner = "Синий" if b.owner.color == (0,255,0) else "Зеленый"
+						explosions.append(Explosion(t.x, t.y))
+						bullets.remove(b)
 						break
 			if winner:
 					break
+		
+		for ex in explosions[:]:
+			ex.update()
+			ex.draw(screen)
+			if ex.finished:
+				explosions.remove(ex)
 
-		if winner:
+		if winner and not explosions:
 			draw_text(f"Победил: {winner}", (WIDTH//2, HEIGHT//2), font)
 
 	pg.display.flip()
