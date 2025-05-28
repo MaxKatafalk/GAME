@@ -62,6 +62,32 @@ for row_idx, row in enumerate(map):
         y = row_idx * TILE_SIZE
         background.blit(tiles[tile_id], (x, y))
 
+def push_chain(box, dx, dy, boxes, pushed):
+	if box in pushed:
+		return True
+	pushed.add(box)
+
+	box.pos += pg.math.Vector2(dx, dy)
+	box.rect.center = box.pos
+
+	if not (0 <= box.rect.left and box.rect.right <= WIDTH
+			and 0 <= box.rect.top and box.rect.bottom <= HEIGHT):
+		box.pos -= pg.math.Vector2(dx, dy)
+		box.rect.center = box.pos
+		return False
+
+	for other in boxes:
+		if other is box:
+			continue
+		if box.rect.inflate(-3, -3).colliderect(other.rect.inflate(-3, -3)):
+			success = push_chain(other, dx, dy, boxes, pushed)
+			if not success:
+					box.pos -= pg.math.Vector2(dx, dy)
+					box.rect.center = box.pos
+					return False
+
+	return True
+
 class Tank:
 	def __init__(self, x, y, width, height, color, sprite_path):
 		self.x = x
@@ -71,23 +97,52 @@ class Tank:
 		self.color = color
 		self.angle = 0
 		self.speedRotation = 2
+		self.pushing = False
 		self.rotationDirection = 1
-		self.wasMoving = False 
-
+		self.wasMoving = False
 		img = pg.image.load(sprite_path).convert_alpha()
 		self.original_image = pg.transform.scale(img, (width, height))
-	
 
-	def update(self, moving):
+	def update(self, moving, boxes):
 		if moving and not self.wasMoving:
 			self.rotationDirection *= -1
+
+		speed = 2
+		rad = math.radians(self.angle)
+		dx = math.cos(rad) * speed
+		dy = math.sin(rad) * speed
+
+		future_rect = self.get_rect().inflate(-3, -3).move(dx, dy)
+
+		collided_box = None
+		for box in boxes:
+			if future_rect.colliderect(box.rect.inflate(-3, -3)):
+					collided_box = box
+					break
+
+		if collided_box:
+			speed = 0.5
+			dx = math.cos(rad) * speed
+			dy = math.sin(rad) * speed
+
+			pushed = set()
+			can_push = push_chain(collided_box, dx, dy, boxes, pushed)
+
+			if not can_push:
+				dx = dy = 0
+			else:
+				if not self.pushing:
+					for b in pushed:
+						b.vel = pg.math.Vector2(dx, dy)
+					self.pushing = True
+		else:
+			self.pushing = False
 
 		if not moving:
 			self.angle = (self.angle + self.speedRotation * self.rotationDirection) % 360
 		else:
-			rad = math.radians(self.angle)
-			self.x += math.cos(rad) * 2
-			self.y += math.sin(rad) * 2
+			self.x += dx
+			self.y += dy
 
 		new_bullet = None
 		if moving and not self.wasMoving:
@@ -129,6 +184,34 @@ class Bullet:
 	def get_rect(self):
 		rotated = pg.transform.rotate(self.original_image, -self.angle)
 		return rotated.get_rect(center=(self.x, self.y))
+	
+class GameObject:
+	def __init__(self, x, y, sprite_path, width, height):
+		img = pg.image.load(sprite_path).convert_alpha()
+		self.image = pg.transform.scale(img, (width, height))
+		self.pos = pg.math.Vector2(x, y)
+		self.rect = self.image.get_rect(center=self.pos)
+		self.vel = pg.math.Vector2(0, 0)
+
+	def update(self):
+		self.pos += self.vel
+		self.vel *= 0.8
+		self.rect.center = self.pos
+
+	def draw(self, surface):
+		surface.blit(self.image, self.rect)
+
+	def collides_with_rect(self, other_rect):
+		return self.rect.colliderect(other_rect)
+
+boxes = [
+	GameObject(200, 200, "Sprites/objects/crateWood.png", width=40, height=40),
+	GameObject(600, 300, "Sprites/objects/crateWood.png", width=40, height=40),
+	GameObject(1100, 300, "Sprites/objects/barricadeWood.png", width=40, height=40),
+	GameObject(700, 300, "Sprites/objects/barricadeWood.png", width=40, height=40),
+	GameObject(900, 300, "Sprites/objects/barricadeWood.png", width=40, height=40),
+]
+
 
 tanks = [
 	Tank(1200, 700, 60, 55, (0, 255, 0), sprite_path="Sprites/tanks/tank_blue.png"),
@@ -167,11 +250,14 @@ while running:
 
 	elif state == "game":
 		screen.blit(background, (0, 0))
-
+		for box in boxes:
+			box.update()
+			box.draw(screen)
+		
 		keys = pg.key.get_pressed()
 		for idx, tank in enumerate(tanks):
 			moving = keys[buttons[idx]]
-			new_b = tank.update(moving)
+			new_b = tank.update(moving, boxes)
 			tank.draw(screen)
 			if new_b:
 					bullets.append(new_b)
