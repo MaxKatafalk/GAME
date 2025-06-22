@@ -3,7 +3,6 @@ import math
 
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
-
 class Explosion:
     explosion_frames = [
         pg.transform.scale(pg.image.load(f"Sprites/animations/explosion{i}.png").convert_alpha(), (500, 500))
@@ -66,6 +65,8 @@ class Tank:
         future_rect = self.get_rect().inflate(-5, -5).move(dx, dy)
         collided_box = None
         for box in boxes:
+            if not box.is_solid:
+                continue
             if future_rect.colliderect(box.rect.inflate(-1, -1)):
                 collided_box = box
                 break
@@ -87,8 +88,15 @@ class Tank:
         if not moving:
             self.angle = (self.angle + self.speedRotation * self.rotationDirection) % 360
         else:
-            self.x += dx
-            self.y += dy
+            future_x = self.x + dx
+            future_y = self.y + dy
+            half_width = self.width // 2
+            half_height = self.height // 2
+
+            if (half_width <= future_x <= SCREEN_WIDTH - half_width and
+                half_height <= future_y <= SCREEN_HEIGHT - half_height):
+                self.x = future_x
+                self.y = future_y
         new_bullet = None
         if moving and not self.wasMoving:
             new_bullet = Bullet(self.x, self.y, self.angle, self, sprite_path="Sprites/bullets/shotThin.png")
@@ -165,12 +173,13 @@ class Bullet:
 
 
 class GameObject:
-    def __init__(self, x, y, sprite_path, width, height):
+    def __init__(self, x, y, sprite_path, width, height, is_solid=True):
         img = pg.image.load(sprite_path).convert_alpha()
         self.image = pg.transform.scale(img, (width, height))
         self.pos = pg.math.Vector2(x, y)
         self.rect = self.image.get_rect(center=self.pos)
         self.vel = pg.math.Vector2(0, 0)
+        self.is_solid = is_solid
 
     def update(self):
         self.pos += self.vel

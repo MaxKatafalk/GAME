@@ -147,8 +147,7 @@ while running:
                 b.draw(screen)
                 if not round_over:
                     for t in tanks:
-                        if (t.alive and t is not b.owner
-                                and b.get_rect().colliderect(t.get_rect())):
+                        if (t.alive and t is not b.owner and b.get_rect().colliderect(t.get_rect())):
                             t.lives -= 1
                             t.blink_timer = 15
                             bullets.remove(b)
@@ -171,9 +170,9 @@ while running:
 
             if len(tanks) >= 2:
                 for i in range(tanks[0].lives):
-                    screen.blit(heart_img, (20 + i*50, 20))
-                for i in range(tanks[1].lives):
                     screen.blit(heart_img, (SCREEN_WIDTH - 20 - (i+1)*50, 20))
+                for i in range(tanks[1].lives):
+                    screen.blit(heart_img, (20 + i*50, 20))
 
             draw_text(f"Зеленый: {score_green}   Синий: {score_blue}",
                     (SCREEN_WIDTH//2, 30), FONT)
