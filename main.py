@@ -1,5 +1,5 @@
 import pygame as pg
-
+from tracks import TankTracks
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FONT, screen
 from objects import Explosion
 from levels import init_map
@@ -12,6 +12,14 @@ def draw_text(text, center, font, color=(255, 255, 255)):
     rect = surf.get_rect(center=center)
     screen.blit(surf, rect)
     return rect
+
+track_manager = TankTracks(
+    "Sprites/animations/tracksSmall.png",
+    spacing=1000,      
+    fade_time=0.8,
+    track_width=30,
+    track_height=50
+)
 
 heart_img = pg.image.load("Sprites/map/images.png").convert_alpha()
 heart_img = pg.transform.scale(heart_img, (50, 40))
@@ -33,7 +41,6 @@ def reset_round():
         background, boxes, tanks, bullets, explosions, winner = init_map(current_map)
         round_over = False
 
-
 state = "menu"
 running = True
 start_rect = None
@@ -47,122 +54,141 @@ while running:
         match ev.type:
             case pg.QUIT:
                 running = False
-        if ev.type == pg.MOUSEBUTTONDOWN and ev.button == 1:
-            mx, my = ev.pos
-            if state == "menu":
-                if start_rect.collidepoint(mx, my):
-                    state = "map_selection"
-                elif settings_rect.collidepoint(mx, my):
-                    state = "settings"
-            elif state == "map_selection":
-                for i, map_rect in enumerate(map_rects):
-                    if map_rect.collidepoint(mx, my):
-                        current_map = i
-                        background, boxes, tanks, bullets, explosions, winner = init_map(i)
-                        score_blue = 0
-                        score_green = 0
-                        round_over = False
-                        state = "game"
-            elif state == "final":
-                if final_button.collidepoint(mx, my):
-                    background = None
-                    boxes = []
-                    tanks = []
-                    bullets = []
-                    explosions = []
-                    winner = None
-                    state = "menu"
-        if state == "settings" and ev.type == pg.KEYDOWN and ev.key == pg.K_ESCAPE:
-            state = "menu"
-        if state == "game" and ev.type == pg.KEYDOWN and ev.key == pg.K_ESCAPE:
-            background = None
-            boxes = []
-            tanks = []
-            bullets = []
-            explosions = []
-            winner = None
-            state = "menu"
+            case pg.KEYDOWN if ev.key == pg.K_ESCAPE:
+                match state:
+                    case "settings" | "game":
+                        background = None
+                        boxes = tanks = bullets = explosions = []
+                        winner = None
+                        state = "menu"
+                    case _:
+                        pass
+            case pg.MOUSEBUTTONDOWN if ev.button == 1:
+                mx, my = ev.pos
+                match state:
+                    case "menu":
+                        if start_rect.collidepoint(mx, my):
+                            state = "map_selection"
+                        elif settings_rect.collidepoint(mx, my):
+                            state = "settings"
+                    case "map_selection":
+                        for i, map_rect in enumerate(map_rects):
+                            if map_rect.collidepoint(mx, my):
+                                current_map = i
+                                (background, boxes, tanks,
+                                bullets, explosions, winner) = init_map(i)
+                                score_blue = score_green = 0
+                                round_over = False
+                                state = "game"
+                                break
+                    case "final":
+                        if final_button.collidepoint(mx, my):
+                            background = None
+                            boxes = tanks = bullets = explosions = []
+                            winner = None
+                            state = "menu"
+                    case _:
+                        pass
 
     screen.fill((0, 0, 0))
 
-    if state == "menu":
-        draw_text("TANKS", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3), FONT, (255, 255, 0))
-        start_rect = draw_text("Начать игру", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), FONT)
-        settings_rect = draw_text("Настройки (Esc)", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100), FONT)
-    elif state == "settings":
-        draw_text("Настройки: нажмите ESC, чтобы вернуться", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), FONT)
-    elif state == "map_selection":
-        draw_text("Выберите карту", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4), FONT, (255, 255, 0))
+    match state:
+        case "menu":
+            draw_text("TANKS", (SCREEN_WIDTH//2, SCREEN_HEIGHT//3), FONT, (255,255,0))
+            start_rect = draw_text("Начать игру", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2), FONT)
+            settings_rect = draw_text("Настройки (Esc)", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 + 100), FONT)
 
-        map_rects = [
-            draw_text(f"Карта {i + 1}", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 60 + i * 60), FONT) for i in range(3)
-        ]
+        case "settings":
+            draw_text("Настройки: нажмите ESC, чтобы вернуться",
+                    (SCREEN_WIDTH//2, SCREEN_HEIGHT//2), FONT)
 
-    elif state == "game":
-        if background is None:
-            background, boxes, tanks, bullets, explosions, winner = init_map(current_map)
+        case "map_selection":
+            draw_text("Выберите карту", (SCREEN_WIDTH//2, SCREEN_HEIGHT//4), FONT, (255,255,0))
+            map_rects = [
+                draw_text(f"Карта {i+1}",
+                        (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 - 60 + i*60),
+                        FONT)
+                for i in range(3)
+            ]
 
-        screen.blit(background, (0, 0))
-        for box in boxes:
-            box.update()
-            box.draw(screen)
-        keys = pg.key.get_pressed()
-        buttons = [pg.K_UP, pg.K_w]
-        for idx, tank in enumerate(tanks):
-            moving = keys[buttons[idx]]
-            new_b = tank.update(moving, boxes)
-            tank.draw(screen)
-            if new_b and not round_over:
-                bullets.append(new_b)
-        for b in bullets[:]:
-            if not b.update(boxes):
-                bullets.remove(b)
-                continue
-            b.draw(screen)
-            if not round_over:
-                for t in tanks:
-                    if t.alive and t is not b.owner and b.get_rect().colliderect(t.get_rect()):
-                        t.lives -= 1
-                        t.blink_timer = 15
-                        bullets.remove(b)
-                        if t.lives <= 0:
-                            t.alive = False
-                            explosions.append(Explosion(t.x, t.y))
-                            other = tanks[0] if t is tanks[1] else tanks[1]
-                            if other.color == (0, 255, 0):
-                                score_blue += 1
-                            else:
-                                score_green += 1
-                            round_over = True
-                        break
-        for ex in explosions:
-            ex.update()
-            ex.draw(screen)
-            if ex.finished:
-                explosions.remove(ex)
-        if len(tanks) >= 2:
-            blue_tank = tanks[0]
-            green_tank = tanks[1]
-            for i in range(blue_tank.lives):
-                x = 20 + i * 50
-                y = 20
-                screen.blit(heart_img, (x, y))
-            for i in range(green_tank.lives):
-                x = SCREEN_WIDTH - (i + 1) * 50 - 20
-                y = 20
-                screen.blit(heart_img, (x, y))
-        score_text = f"Зеленый: {score_green}   Синий: {score_blue}"
-        draw_text(score_text, (SCREEN_WIDTH // 2, 30), FONT)
-        if round_over and not explosions:
-            reset_round()
-        if score_blue >= 3 or score_green >= 3:
-            winner = "Синий" if score_blue > score_green else "Зеленый"
-            state = "final"
+        case "game":
+            if background is None:
+                (background, boxes, tanks, bullets, explosions, winner) = init_map(current_map)
 
-    elif state == "final":
-        draw_text(f"Победил: {winner}", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30), FONT)
-        final_button = pg.draw.rect(screen, (200, 50, 50), (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 30, 200, 60))
-        draw_text("В меню", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60), FONT)
+                track_manager = TankTracks(
+                    "Sprites/animations/tracksSmall.png",
+                    spacing=1000,      
+                    fade_time=0.8,
+                    track_width=30,
+                    track_height=50
+                )
+
+            screen.blit(background, (0, 0))
+
+            track_manager.draw(screen)
+
+            for box in boxes:
+                box.update()
+                box.draw(screen)
+
+            keys = pg.key.get_pressed()
+            buttons = [pg.K_UP, pg.K_w]
+            for idx, tank in enumerate(tanks):
+                moving = keys[buttons[idx]]
+                new_b = tank.update(moving, boxes)
+                track_manager.update(tank.x, tank.y, tank.angle)
+                tank.draw(screen)
+                if new_b and not round_over:
+                    bullets.append(new_b)
+
+            for b in bullets[:]:
+                if not b.update(boxes):
+                    bullets.remove(b); continue
+                b.draw(screen)
+                if not round_over:
+                    for t in tanks:
+                        if (t.alive and t is not b.owner
+                                and b.get_rect().colliderect(t.get_rect())):
+                            t.lives -= 1
+                            t.blink_timer = 15
+                            bullets.remove(b)
+                            if t.lives <= 0:
+                                t.alive = False
+                                explosions.append(Explosion(t.x, t.y))
+                                other = tanks[0] if t is tanks[1] else tanks[1]
+                                if other.color == (0,255,0):
+                                    score_blue += 1
+                                else:
+                                    score_green += 1
+                                round_over = True
+                            break
+
+            for ex in explosions[:]:
+                ex.update()
+                ex.draw(screen)
+                if ex.finished:
+                    explosions.remove(ex)
+
+            if len(tanks) >= 2:
+                for i in range(tanks[0].lives):
+                    screen.blit(heart_img, (20 + i*50, 20))
+                for i in range(tanks[1].lives):
+                    screen.blit(heart_img, (SCREEN_WIDTH - 20 - (i+1)*50, 20))
+
+            draw_text(f"Зеленый: {score_green}   Синий: {score_blue}",
+                    (SCREEN_WIDTH//2, 30), FONT)
+
+            if round_over and not explosions:
+                reset_round()
+            if score_blue >= 3 or score_green >= 3:
+                winner = "Синий" if score_blue > score_green else "Зеленый"
+                state = "final"
+
+        case "final":
+            draw_text(f"Победил: {winner}",
+                    (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 - 30), FONT)
+            final_button = pg.draw.rect(screen, (200,50,50),(SCREEN_WIDTH//2 -100, SCREEN_HEIGHT//2 +30, 200,60))
+            draw_text("В меню", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 +60), FONT)
 
     pg.display.flip()
     clock.tick(60)

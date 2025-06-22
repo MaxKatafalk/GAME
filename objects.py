@@ -63,10 +63,10 @@ class Tank:
         rad = math.radians(self.angle)
         dx = math.cos(rad) * speed
         dy = math.sin(rad) * speed
-        future_rect = self.get_rect().inflate(-7, -7).move(dx, dy)
+        future_rect = self.get_rect().inflate(-5, -5).move(dx, dy)
         collided_box = None
         for box in boxes:
-            if future_rect.colliderect(box.rect.inflate(-7, -7)):
+            if future_rect.colliderect(box.rect.inflate(-1, -1)):
                 collided_box = box
                 break
         if collided_box:
@@ -125,7 +125,7 @@ class Tank:
         for other in boxes:
             if other is box:
                 continue
-            if box.rect.inflate(-7, -7).colliderect(other.rect.inflate(-7, -7)):
+            if box.rect.inflate(1, 1).colliderect(other.rect.inflate(1, 1)):
                 success = Tank.push_chain(other, dx, dy, boxes, pushed)
                 if not success:
                     box.pos -= pg.math.Vector2(dx, dy)
