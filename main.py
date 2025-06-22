@@ -7,13 +7,11 @@ from levels import init_map
 pg.init()
 clock = pg.time.Clock()
 
-
 def draw_text(text, center, font, color=(255, 255, 255)):
     surf = font.render(text, True, color)
     rect = surf.get_rect(center=center)
     screen.blit(surf, rect)
     return rect
-
 
 heart_img = pg.image.load("Sprites/map/images.png").convert_alpha()
 heart_img = pg.transform.scale(heart_img, (50, 40))
@@ -28,7 +26,6 @@ current_map = 0
 score_blue = 0
 score_green = 0
 round_over = False
-
 
 def reset_round():
     global background, tanks, winner, boxes, bullets, explosions, round_over
