@@ -1,6 +1,6 @@
 import pygame as pg
 import math
-
+from random import randint, randrange
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
 class Explosion:
@@ -62,14 +62,20 @@ class Tank:
         rad = math.radians(self.angle)
         dx = math.cos(rad) * speed
         dy = math.sin(rad) * speed
-        future_rect = self.get_rect().inflate(-5, -5).move(dx, dy)
+        future_rect = self.get_rect().inflate(-10, -10).move(dx, dy)
         collided_box = None
         for box in boxes:
             if not box.is_solid:
                 continue
-            if future_rect.colliderect(box.rect.inflate(-1, -1)):
-                collided_box = box
-                break
+            if future_rect.colliderect(box.rect.inflate(-10, -10)):
+                if not box.is_movable:
+                    dx = dy = 0
+                    self.pushing = False
+                    collided_box = None
+                    break
+                else:
+                    collided_box = box
+                    break
         if collided_box:
             speed = 0.5
             dx = math.cos(rad) * speed
@@ -133,7 +139,7 @@ class Tank:
         for other in boxes:
             if other is box:
                 continue
-            if box.rect.inflate(1, 1).colliderect(other.rect.inflate(1, 1)):
+            if box.rect.inflate(-3, -3).colliderect(other.rect.inflate(-3, -3)):
                 success = Tank.push_chain(other, dx, dy, boxes, pushed)
                 if not success:
                     box.pos -= pg.math.Vector2(dx, dy)
@@ -158,6 +164,8 @@ class Bullet:
         self.y += math.sin(rad) * self.speed
         self.rect = self.get_rect()
         for box in boxes:
+            if not box.is_solid:
+                continue
             if self.rect.colliderect(box.rect):
                 return False
         return 0 <= self.x <= SCREEN_WIDTH and 0 <= self.y <= SCREEN_HEIGHT
@@ -173,13 +181,14 @@ class Bullet:
 
 
 class GameObject:
-    def __init__(self, x, y, sprite_path, width, height, is_solid=True):
+    def __init__(self, x, y, sprite_path, width, height, is_solid=True, is_movable=True):
         img = pg.image.load(sprite_path).convert_alpha()
         self.image = pg.transform.scale(img, (width, height))
         self.pos = pg.math.Vector2(x, y)
         self.rect = self.image.get_rect(center=self.pos)
         self.vel = pg.math.Vector2(0, 0)
         self.is_solid = is_solid
+        self.is_movable = is_movable
 
     def update(self):
         self.pos += self.vel
@@ -191,3 +200,23 @@ class GameObject:
 
     def collides_with_rect(self, other_rect):
         return self.rect.colliderect(other_rect)
+    
+from random import randint, randrange
+
+class Star(pg.sprite.Sprite):
+    def __init__(self, *groups):
+        super().__init__(*groups)
+        self.len = randint(1, 6)
+        self.image = pg.Surface((self.len, self.len), pg.SRCALPHA)
+        pg.draw.circle(self.image, (200, 200, 200), (self.len // 2, self.len // 2), self.len // 2)
+        self.rect = self.image.get_rect()
+        self.rect.x = randrange(SCREEN_WIDTH)
+        self.rect.y = randrange(SCREEN_HEIGHT)
+        self.x = float(self.rect.x)
+        self.y = float(self.rect.y)
+
+    def update(self):
+        self.x += 0.1 * (self.len / 2)
+        self.y += 0.05
+        self.rect.x = int(self.x) % SCREEN_WIDTH
+        self.rect.y = int(self.y) % SCREEN_HEIGHT

@@ -36,15 +36,16 @@ base_map_matrix1 = [
     [0, 8, 22, 10, 12, 23, 19, 17, 19],
     [1, 0, 9, 1, 21, 18, 2, 18, 2]
 ]
-
 base_objects1 = [
-    (200, 200, "Sprites/objects/crateWood.png", 40, 40),
-    (600, 300, "Sprites/objects/crateWood.png", 40, 40),
-    (1100, 300, "Sprites/objects/barricadeWood.png", 40, 40),
-    (700, 300, "Sprites/objects/barricadeWood.png", 40, 40),
-    (900, 300, "Sprites/objects/barricadeWood.png", 40, 40),
+    (200, 200, "Sprites/objects/treeGreen_twigs.png", 30, 30, False, False),
+    (210, 400, "Sprites/objects/treeGreen_small.png", 50, 50, True, False),
+    (100, 700, "Sprites/objects/treeGreen_large.png", 100, 100, True, False),
+    (150, 720, "Sprites/objects/treeGreen_small.png", 50, 50, True, False),
+    (600, 370, "Sprites/objects/sandbagBeige.png", 30, 40, True, True),
+    (630, 410, "Sprites/objects/sandbagBeige.png", 30, 40, True, True),
+    (660, 450, "Sprites/objects/sandbagBeige.png", 30, 40, True, True),
+    (690, 490, "Sprites/objects/sandbagBeige.png", 30, 40, True, True),
 ]
-
 base_tank_positions1 = [
     (1200, 700, (0, 255, 0), "Sprites/tanks/tank_blue.png"),
     (300, 300, (0, 0, 255), "Sprites/tanks/tank_green.png"),
@@ -68,8 +69,8 @@ def init_map(map_index):
         for c, tile_id in enumerate(row):
             background.blit(tiles[tile_id], (c * TILE_SIZE, r * TILE_SIZE))
     boxes = []
-    for (x, y, sprite, w, h) in data["objects"]:
-        boxes.append(GameObject(x, y, sprite, w, h))
+    for (x, y, sprite, w, h, flag1, flag2) in data["objects"]:
+        boxes.append(GameObject(x, y, sprite, w, h, flag1, flag2))
     tanks = []
     for (x, y, color, sprite) in data["tanks_positions"]:
         tanks.append(Tank(x, y, 60, 55, color, sprite))

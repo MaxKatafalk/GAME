@@ -1,10 +1,14 @@
 import pygame as pg
 from tracks import TankTracks
 from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FONT, screen
-from objects import Explosion
+from objects import Explosion, Star
 from levels import init_map
-
+from sounds import Sound
 pg.init()
+sound = Sound()
+stars = pg.sprite.Group()
+for _ in range(100):
+    Star(stars)
 clock = pg.time.Clock()
 
 def draw_text(text, center, font, color=(255, 255, 255)):
@@ -68,8 +72,10 @@ while running:
                 match state:
                     case "menu":
                         if start_rect.collidepoint(mx, my):
+                            sound.play_select()
                             state = "map_selection"
                         elif settings_rect.collidepoint(mx, my):
+                            sound.play_select()
                             state = "settings"
                     case "map_selection":
                         for i, map_rect in enumerate(map_rects):
@@ -94,6 +100,11 @@ while running:
 
     match state:
         case "menu":
+            stars.update()
+            stars.draw(screen)
+
+            sound.play_menu_music()
+
             draw_text("TANKS", (SCREEN_WIDTH//2, SCREEN_HEIGHT//3), FONT, (255,255,0))
             start_rect = draw_text("Начать игру", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2), FONT)
             settings_rect = draw_text("Настройки (Esc)", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 + 100), FONT)
@@ -112,7 +123,9 @@ while running:
             ]
 
         case "game":
+            sound.stop_music()
             if background is None:
+    
                 (background, boxes, tanks, bullets, explosions, winner) = init_map(current_map)
 
                 track_manager = TankTracks(
@@ -140,6 +153,7 @@ while running:
                 tank.draw(screen)
                 if new_b and not round_over:
                     bullets.append(new_b)
+                    sound.play_shoot()
 
             for b in bullets[:]:
                 if not b.update(boxes):
@@ -151,9 +165,11 @@ while running:
                             t.lives -= 1
                             t.blink_timer = 15
                             bullets.remove(b)
+                            sound.play_hit()
                             if t.lives <= 0:
                                 t.alive = False
                                 explosions.append(Explosion(t.x, t.y))
+                                sound.play_explosion()
                                 other = tanks[0] if t is tanks[1] else tanks[1]
                                 if other.color == (0,255,0):
                                     score_blue += 1
