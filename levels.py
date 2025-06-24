@@ -38,13 +38,39 @@ base_map_matrix1 = [
 ]
 base_objects1 = [
     (200, 200, "Sprites/objects/treeGreen_twigs.png", 30, 30, False, False),
+    (210, 500, "Sprites/objects/treeGreen_twigs.png", 30, 30, False, False),
+    (1000, 200, "Sprites/objects/treeBrown_twigs.png", 30, 30, False, False),
+    (1100, 700, "Sprites/objects/treeBrown_twigs.png", 30, 30, False, False),
     (210, 400, "Sprites/objects/treeGreen_small.png", 50, 50, True, False),
-    (100, 700, "Sprites/objects/treeGreen_large.png", 100, 100, True, False),
+    (800, 890, "Sprites/objects/treeGreen_small.png", 50, 50, True, False),
     (150, 720, "Sprites/objects/treeGreen_small.png", 50, 50, True, False),
+    (400, 600, "Sprites/objects/treeGreen_small.png", 50, 50, True, False),
+    (1050, 500, "Sprites/objects/treeBrown_small.png", 50, 50, True, False),
+    (1720, 450, "Sprites/objects/treeBrown_small.png", 50, 50, True, False),
+    (1000, 500, "Sprites/objects/treeBrown_large.png", 100, 100, True, False),
+    (1700, 400, "Sprites/objects/treeBrown_large.png", 100, 100, True, False),
+    (100, 700, "Sprites/objects/treeGreen_large.png", 100, 100, True, False),
+    (800, 820, "Sprites/objects/treeGreen_large.png", 100, 100, True, False),
+    (1300, 500, "Sprites/objects/sandbagBrown.png", 40, 30, True, True),
+    (1350, 600, "Sprites/objects/sandbagBrown.png", 40, 30, True, True),
+    (1400, 500, "Sprites/objects/sandbagBrown.png", 40, 30, True, True),
+    (1250, 600, "Sprites/objects/sandbagBrown.png", 40, 30, True, True),
+    (1200, 500, "Sprites/objects/sandbagBrown.png", 40, 30, True, True),
     (600, 370, "Sprites/objects/sandbagBeige.png", 30, 40, True, True),
     (630, 410, "Sprites/objects/sandbagBeige.png", 30, 40, True, True),
     (660, 450, "Sprites/objects/sandbagBeige.png", 30, 40, True, True),
     (690, 490, "Sprites/objects/sandbagBeige.png", 30, 40, True, True),
+    (600, 700, "Sprites/objects/crateMetal.png", 40, 40, True, True),
+    (650, 670, "Sprites/objects/crateMetal.png", 40, 40, True, True),
+    (640, 770, "Sprites/objects/crateMetal.png", 40, 40, True, True),
+    (1600, 200, "Sprites/objects/crateWood.png", 40, 40, True, True),
+    (1650, 260, "Sprites/objects/crateWood.png", 40, 40, True, True),
+    (1670, 190, "Sprites/objects/crateWood.png", 40, 40, True, True),
+
+    (600, 300, "Sprites/objects/fenceRed.png", 30, 100, True, False),
+    (800, 200, "Sprites/objects/fenceRed.png", 30, 100, True, False),
+    (800, 500, "Sprites/objects/fenceYellow.png", 100, 30, True, False),
+
 ]
 base_tank_positions1 = [
     (1200, 700, (0, 255, 0), "Sprites/tanks/tank_blue.png"),
@@ -53,8 +79,8 @@ base_tank_positions1 = [
 
 maps_data = [
     {"map_matrix": base_map_matrix1, "objects": base_objects1, "tanks_positions": base_tank_positions1},
-    ##{"map_matrix": base_map_matrix2, "objects": base_objects2, "tanks_positions": base_tank_positions2},
-    #{"map_matrix": base_map_matrix3, "objects": base_objects3, "tanks_positions": base_tank_positions3},
+    #{"map_matrix": base_map_matrix2, "objects": base_objects2, "tanks_positions": base_tank_positions2},
+    
 ]
 
 def init_map(map_index):

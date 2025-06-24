@@ -131,8 +131,7 @@ class Tank:
         pushed.add(box)
         box.pos += pg.math.Vector2(dx, dy)
         box.rect.center = box.pos
-        if not (
-                0 <= box.rect.left and box.rect.right <= SCREEN_WIDTH and 0 <= box.rect.top and box.rect.bottom <= SCREEN_HEIGHT):
+        if not ( 0 <= box.rect.left and box.rect.right <= SCREEN_WIDTH and 0 <= box.rect.top and box.rect.bottom <= SCREEN_HEIGHT):
             box.pos -= pg.math.Vector2(dx, dy)
             box.rect.center = box.pos
             return False
@@ -146,7 +145,6 @@ class Tank:
                     box.rect.center = box.pos
                     return False
         return True
-
 
 class Bullet:
     def __init__(self, x, y, angle, owner, sprite_path):
@@ -201,8 +199,6 @@ class GameObject:
     def collides_with_rect(self, other_rect):
         return self.rect.colliderect(other_rect)
     
-from random import randint, randrange
-
 class Star(pg.sprite.Sprite):
     def __init__(self, *groups):
         super().__init__(*groups)

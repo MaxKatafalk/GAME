@@ -4,6 +4,7 @@ from settings import SCREEN_WIDTH, SCREEN_HEIGHT, FONT, screen
 from objects import Explosion, Star
 from levels import init_map
 from sounds import Sound
+
 pg.init()
 sound = Sound()
 stars = pg.sprite.Group()
@@ -60,7 +61,7 @@ while running:
                 running = False
             case pg.KEYDOWN if ev.key == pg.K_ESCAPE:
                 match state:
-                    case "settings" | "game":
+                    case "game":
                         background = None
                         boxes = tanks = bullets = explosions = []
                         winner = None
@@ -74,9 +75,6 @@ while running:
                         if start_rect.collidepoint(mx, my):
                             sound.play_select()
                             state = "map_selection"
-                        elif settings_rect.collidepoint(mx, my):
-                            sound.play_select()
-                            state = "settings"
                     case "map_selection":
                         for i, map_rect in enumerate(map_rects):
                             if map_rect.collidepoint(mx, my):
@@ -106,8 +104,7 @@ while running:
             sound.play_menu_music()
 
             draw_text("TANKS", (SCREEN_WIDTH//2, SCREEN_HEIGHT//3), FONT, (255,255,0))
-            start_rect = draw_text("Начать игру", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2), FONT)
-            settings_rect = draw_text("Настройки (Esc)", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 + 100), FONT)
+            start_rect = draw_text("НАЧАТЬ ИГРУ", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2+25), FONT)
 
         case "settings":
             draw_text("Настройки: нажмите ESC, чтобы вернуться",
@@ -116,10 +113,8 @@ while running:
         case "map_selection":
             draw_text("Выберите карту", (SCREEN_WIDTH//2, SCREEN_HEIGHT//4), FONT, (255,255,0))
             map_rects = [
-                draw_text(f"Карта {i+1}",
-                        (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 - 60 + i*60),
-                        FONT)
-                for i in range(3)
+                draw_text(f"Карта {i+1}", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 - 60 + i*100), FONT)
+                for i in range(2)
             ]
 
         case "game":
@@ -157,7 +152,8 @@ while running:
 
             for b in bullets[:]:
                 if not b.update(boxes):
-                    bullets.remove(b); continue
+                    bullets.remove(b); 
+                    continue
                 b.draw(screen)
                 if not round_over:
                     for t in tanks:
@@ -190,8 +186,7 @@ while running:
                 for i in range(tanks[1].lives):
                     screen.blit(heart_img, (20 + i*50, 20))
 
-            draw_text(f"Зеленый: {score_green}   Синий: {score_blue}",
-                    (SCREEN_WIDTH//2, 30), FONT)
+            draw_text(f"Зеленый: {score_green}   Синий: {score_blue}", (SCREEN_WIDTH//2, 30), FONT)
 
             if round_over and not explosions:
                 reset_round()
@@ -200,8 +195,7 @@ while running:
                 state = "final"
 
         case "final":
-            draw_text(f"Победил: {winner}",
-                    (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 - 30), FONT)
+            draw_text(f"Победил: {winner}", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 - 30), FONT)
             final_button = pg.draw.rect(screen, (200,50,50),(SCREEN_WIDTH//2 -100, SCREEN_HEIGHT//2 +30, 200,60))
             draw_text("В меню", (SCREEN_WIDTH//2, SCREEN_HEIGHT//2 +60), FONT)
 
